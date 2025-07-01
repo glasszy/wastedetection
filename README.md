@@ -6,5 +6,5 @@ This project aims to revolutionize urban waste management in the Philippines by 
 
 ## Running the Program
 
-If you want to run the program using a webcam, run **webcam with cnn.py**
-If you simply want to upload an imaage, run **upload with cnn.py**
+If you want to run the program using a webcam, run **webcam with cnn.py**. If you simply want to upload an imaage, run **upload with cnn.py**
+      
