@@ -6,6 +6,8 @@ import torch.nn as nn
 from PIL import Image
 import numpy as np
 import time
+import tkinter as tk
+from tkinter import Label
 
 # Use GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -52,6 +54,62 @@ transform = transforms.Compose([
 cap = cv2.VideoCapture(0)
 prev_time = time.time()
 
+# --- Tkinter GUI for Header ---
+root = tk.Tk()
+root.title("Real-Time Hazard Detection")
+root.geometry("800x100")  # Header size
+
+# Status label
+status_label = Label(root, text="Model Status: Ready", font=("Helvetica", 14), fg="green")
+status_label.pack(pady=10)
+
+# FPS label
+fps_label = Label(root, text="FPS: 0.00", font=("Helvetica", 14), fg="blue")
+fps_label.pack(pady=10)
+
+# Hazard detection status label
+hazard_label = Label(root, text="Hazard Alert: None", font=("Helvetica", 14), fg="blue")
+hazard_label.pack(pady=10)
+
+root.after(100, lambda: None)  # Keeps the GUI running in the background
+
+def update_gui(hazard_detected, fps):
+    # Update the hazard detection status
+    if hazard_detected:
+        hazard_label.config(text="Hazard Alert: Detected", fg="red")
+    else:
+        hazard_label.config(text="Hazard Alert: None", fg="blue")
+    
+    # Update FPS label
+    fps_label.config(text=f"FPS: {fps:.2f}")
+
+# --- Title Screen Function ---
+def show_title_screen():
+    # Create a blank image for the title screen
+    title_screen = np.zeros((720, 1280, 3), dtype=np.uint8)
+    
+    # Set background color (blue gradient, can customize further)
+    for i in range(title_screen.shape[0]):
+        color = int(255 * (i / title_screen.shape[0]))  # Gradient effect
+        title_screen[i, :] = (color, color, 255)  # RGB (light blue gradient)
+
+    # Add text
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(title_screen, "Real-Time Hazard Detection", (200, 300),
+                font, 2, (255, 255, 255), 5, cv2.LINE_AA)
+
+    # Display title screen
+    cv2.imshow("Title Screen", title_screen)
+
+    # Wait for a few seconds (3 seconds here)
+    cv2.waitKey(3000)  # 3000 ms (3 seconds)
+
+    cv2.destroyWindow("Title Screen")
+
+# --- Main Loop with Title Screen ---
+show_title_screen()  # Show title screen before starting the detection
+
+# Now, start the webcam feed and hazard detection
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -107,8 +165,9 @@ while True:
     current_time = time.time()
     fps = 1.0 / (current_time - prev_time)
     prev_time = current_time
-    cv2.putText(frame, f"FPS: {fps:.2f}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+    
+    # Update GUI with FPS and hazard detection status
+    update_gui(hazard_detected, fps)
 
     # --- Display ---
     cv2.imshow("YOLOv8 + CNN Real-Time", frame)
@@ -120,3 +179,4 @@ while True:
 # Cleanup
 cap.release()
 cv2.destroyAllWindows()
+root.quit()  # Close the Tkinter GUI window
